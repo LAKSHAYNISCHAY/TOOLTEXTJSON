@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Conversion Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .box {
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fafafa;
+            position: relative;
+        }
+        .box textarea {
+            width: 100%;
+            border: none;
+            border-radius: 4px;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .box .instructions {
+            background-color: #e0f7fa;
+            border: 1px solid #b2ebf2;
+            font-size: 16px;
+        }
+        .box .result {
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .box button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .box button:hover {
+            background-color: #0056b3;
+        }
+        .box .copy-button {
+            background-color: #28a745;
+        }
+        .box .copy-button:hover {
+            background-color: #218838;
+        }
+        .progress-container {
+            margin-top: 10px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            height: 20px;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #76c7c0;
+            width: 0;
+            border-radius: 4px;
+            text-align: center;
+            color: #fff;
+            line-height: 20px;
+            position: absolute;
+        }
+        .footer {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .footer a {
+            color: #1e90ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .example {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .example pre {
+            margin: 0;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON Conversion Tool</h1>
+        <div class="box instructions">
+            <h2>Instructions</h2>
+            <p>Paste your text in the following format:</p>
+            <div class="example">
+                <p>Example format:</p>
+                <pre>
+Question 1:
+What is the capital of France?
+* (a) Berlin
+* (b) Madrid
+* (c) Paris
+* (d) Rome
+Correct Answer: (c) Paris
+Explanation: Paris is the capital city of France.
+                
+Question 2:
+Which planet is known as the Red Planet?
+* (a) Earth
+* (b) Mars
+* (c) Jupiter
+* (d) Venus
+Correct Answer: (b) Mars
+Explanation: Mars is known as the Red Planet due to its reddish appearance.
+                </pre>
+            </div>
+        </div>
+        <div class="box">
+            <h2>Paste Text Here</h2>
+            <textarea id="inputText" rows="10" placeholder="Paste your text here..."></textarea>
+            <button onclick="convertText()">Convert to JSON</button>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar">0%</div>
+            </div>
+        </div>
+        <div class="box result">
+            <h2>JSON Result</h2>
+            <textarea id="resultText" rows="10" readonly></textarea>
+            <button class="copy-button" onclick="copyResult()">Copy All</button>
+        </div>
+    </div>
+    <div class="footer">
+        COPYRIGHT ©️ 2024-25 MADE BY LAKSHAYNISCHAYA <a href="https://lakshyanischay.blogspot.com/">lakshyanischay.blogspot.com</a><br>
+        FOLLOW 🤳 CONTACT 🤙 US 📱<a href="https://t.me/currentaffairsupdatz">t.me/currentaffairsupdatz</a>
+    </div>
+    <script>
+        function convertText() {
+            const inputText = document.getElementById('inputText').value;
+            const resultText = document.getElementById('resultText');
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+
+            // Validate and process the input text
+            try {
+                if (!inputText.trim()) {
+                    throw new Error('Input text is empty.');
+                }
+
+                const lines = inputText.trim().split('\n');
+                let questionBlocks = [];
+                let currentBlock = [];
+
+                lines.forEach(line => {
+                    if (line.startsWith('Question')) {
+                        if (currentBlock.length) {
+                            if (currentBlock.length < 4) {
+                                throw new Error('Each question block must have at least 4 lines.');
+                            }
+                            questionBlocks.push(currentBlock);
+                            currentBlock = [];
+                        }
+                    }
+                    currentBlock.push(line);
+                });
+
+                if (currentBlock.length) {
+                    if (currentBlock.length < 4) {
+                        throw new Error('Each question block must have at least 4 lines.');
+                    }
+                    questionBlocks.push(currentBlock);
+                }
+
+                const jsonResult = { questions: questionBlocks.map(block => {
+                    const question = block[0].replace(/Question \d+: /, '');
+                    const options = {};
+                    block.slice(1, 5).forEach(optionLine => {
+                        const match = optionLine.match(/^\* \((.)\) (.+)$/);
+                        if (match) {
+                            options[match[1]] = match[2];
+                        }
+                    });
+                    const correctAnswer = block[6].replace('Correct Answer: ', '').trim();
+                    const explanation = block[7].replace('Explanation: ', '').trim();
+                    return {
+                        question,
+                        options,
+                        correctAnswer,
+                        explanation
+                    };
+                })};
+
+                resultText.value = JSON.stringify(jsonResult, null, 2);
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress > 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                    }
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                }, 100);
+
+            } catch (error) {
+                resultText.value = 'Error in JSON conversion: ' + error.message;
+            }
+        }
+
+        function copyResult() {
+            const resultText = document.getElementById('resultText');
+            resultText.select();
+            document.execCommand('copy');
+        }
+    </script>
+</body>
+</html>
